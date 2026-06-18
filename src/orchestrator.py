@@ -193,7 +193,10 @@ class HorizonOrchestrator:
                     self.console.print(f"📧 Sending {lang.upper()} email summary...")
                     subscribers = self.storage.load_subscribers()
                     subject = f"Horizon Summary ({lang.upper()}) - {today}"
-                    self.email_manager.send_daily_summary(summary, subject, subscribers)
+                    source_metrics = self._build_source_metrics(all_items, important_items)
+                    metrics_section = summarizer.generate_source_metrics_section(source_metrics, lang)
+                    email_summary = summary + "\n\n---\n\n" + metrics_section if metrics_section else summary
+                    self.email_manager.send_daily_summary(email_summary, subject, subscribers)
 
                 # Send webhook notification if configured
                 if self.webhook_notifier:
@@ -683,6 +686,35 @@ class HorizonOrchestrator:
         analyzer = ContentAnalyzer(ai_client)
 
         return await analyzer.analyze_batch(items)
+
+    def _build_source_metrics(
+        self,
+        all_items: List[ContentItem],
+        important_items: List[ContentItem],
+    ) -> Dict[str, dict]:
+        """Compute per-source metrics: fetched count, selected count, avg AI score."""
+        fetched: Dict[str, int] = defaultdict(int)
+        selected: Dict[str, int] = defaultdict(int)
+        scores: Dict[str, list] = defaultdict(list)
+
+        for item in all_items:
+            fetched[item.source_type.value] += 1
+
+        for item in important_items:
+            src = item.source_type.value
+            selected[src] += 1
+            if item.ai_score is not None:
+                scores[src].append(item.ai_score)
+
+        all_sources = sorted(set(list(fetched.keys()) + list(selected.keys())))
+        return {
+            src: {
+                "fetched": fetched[src],
+                "selected": selected[src],
+                "avg_score": sum(scores[src]) / len(scores[src]) if scores[src] else 0.0,
+            }
+            for src in all_sources
+        }
 
     async def _generate_summary(
         self,

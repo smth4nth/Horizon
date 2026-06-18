@@ -1,7 +1,7 @@
 """Daily summary generation — pure programmatic rendering."""
 
 import re
-from typing import List, Dict
+from typing import List, Dict, Any
 
 from ..models import ContentItem
 
@@ -106,7 +106,17 @@ class DailySummarizer:
             if language == "zh":
                 t = _pangu(t)
             score = item.ai_score or "?"
-            toc_entries.append(f"{i + 1}. [{t}](#item-{i + 1}) \u2b50\ufe0f {score}/10")
+            src_label = item.source_type.value
+            meta = item.metadata
+            if meta.get("feed_name"):
+                src_label += f"/{meta['feed_name']}"
+            elif meta.get("subreddit"):
+                src_label += f"/r/{meta['subreddit']}"
+            elif meta.get("channel"):
+                src_label += f"/@{meta['channel']}"
+            elif meta.get("watchlist"):
+                src_label += f"/{meta['watchlist']}"
+            toc_entries.append(f"{i + 1}. [{t}](#item-{i + 1}) \u2b50\ufe0f {score}/10 \u00b7 `{src_label}`")
         toc = "\n".join(toc_entries) + "\n\n---\n\n"
 
         parts = [self._format_item(item, labels, language, i + 1) for i, item in enumerate(items)]
@@ -247,6 +257,39 @@ class DailySummarizer:
         lines.append("---")
 
         return "\n".join(lines) + "\n\n"
+
+    def generate_source_metrics_section(
+        self,
+        metrics: Dict[str, Dict[str, Any]],
+        language: str = "en",
+    ) -> str:
+        """Generate a per-source metrics table to append to email."""
+        if not metrics:
+            return ""
+
+        if language == "zh":
+            title = "## 来源数据统计"
+            headers = ("来源", "抓取", "入选", "平均分")
+        else:
+            title = "## Source Metrics"
+            headers = ("Source", "Fetched", "Selected", "Avg Score")
+
+        rows = []
+        for src, m in sorted(metrics.items()):
+            avg = f"{m['avg_score']:.1f}" if m["avg_score"] else "—"
+            rows.append((src, str(m["fetched"]), str(m["selected"]), avg))
+
+        col_widths = [
+            max(len(h), max((len(r[i]) for r in rows), default=0))
+            for i, h in enumerate(headers)
+        ]
+
+        def fmt_row(cells: tuple) -> str:
+            return "| " + " | ".join(c.ljust(w) for c, w in zip(cells, col_widths)) + " |"
+
+        sep = "| " + " | ".join("-" * w for w in col_widths) + " |"
+        lines = [title, "", fmt_row(headers), sep] + [fmt_row(r) for r in rows]
+        return "\n".join(lines) + "\n"
 
     def _generate_empty_summary(self, date: str, total_fetched: int, labels: dict) -> str:
         """Generate summary when no high-scoring items were found."""
