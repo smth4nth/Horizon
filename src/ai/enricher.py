@@ -79,7 +79,10 @@ class ContentEnricher:
             sys.stderr = open(os.devnull, "w")
             try:
                 ddgs = DDGS()
-                results = await asyncio.to_thread(ddgs.text, query, max_results=max_results)
+                results = await asyncio.wait_for(
+                    asyncio.to_thread(ddgs.text, query, max_results=max_results),
+                    timeout=15,
+                )
             finally:
                 sys.stderr.close()
                 sys.stderr = stderr

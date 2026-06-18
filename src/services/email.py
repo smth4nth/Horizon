@@ -32,7 +32,7 @@ class EmailManager:
             try:
                 from rich.console import Console
 
-                self.console = Console()
+                self.console = Console(legacy_windows=False)
             except ImportError:
 
                 class DummyConsole:

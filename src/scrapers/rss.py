@@ -74,6 +74,8 @@ class RSSScraper(BaseScraper):
 
             # Fetch feed content
             response = await self.client.get(feed_url, follow_redirects=True)
+            if response.status_code == 304:
+                return items
             response.raise_for_status()
 
             # Parse feed

@@ -104,7 +104,7 @@ class RunStore:
                 }
             )
 
-        entries.sort(key=lambda x: x["updated_at"] or x["created_at"], reverse=True)
+        entries.sort(key=lambda x: (x["updated_at"] or x["created_at"], x["run_id"]), reverse=True)
         return entries[: max(0, limit)]
 
     def write_json(self, run_id: str, filename: str, payload: Any) -> Path:

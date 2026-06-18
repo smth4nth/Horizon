@@ -22,7 +22,7 @@ from ..storage.manager import StorageManager
 from .presets import load_presets, match_sources
 
 
-console = Console()
+console = Console(legacy_windows=False)
 
 
 def print_banner():

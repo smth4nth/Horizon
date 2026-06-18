@@ -52,7 +52,7 @@ class HorizonOrchestrator:
         """
         self.config = config
         self.storage = storage
-        self.console = Console()
+        self.console = Console(legacy_windows=False)
         self.email_manager = EmailManager(config.email, console=self.console) if config.email else None
         self.webhook_notifier = (
             WebhookNotifier(config.webhook, console=self.console)

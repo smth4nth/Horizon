@@ -12,7 +12,7 @@ from .storage.manager import ConfigError, StorageManager
 from .orchestrator import HorizonOrchestrator
 
 
-console = Console()
+console = Console(legacy_windows=False)
 
 
 def print_banner():

@@ -16,7 +16,7 @@ from ..models import ContentItem, SourceType
 from ..storage.manager import ConfigError, StorageManager
 from .webhook import WebhookNotifier
 
-console = Console()
+console = Console(legacy_windows=False)
 
 
 def _make_test_items() -> list[ContentItem]:
