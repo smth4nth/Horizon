@@ -43,15 +43,17 @@ class BalancedDigestResult:
 class HorizonOrchestrator:
     """Orchestrates the complete workflow for content aggregation and analysis."""
 
-    def __init__(self, config: Config, storage: StorageManager):
+    def __init__(self, config: Config, storage: StorageManager, dry_run: bool = False):
         """Initialize orchestrator.
 
         Args:
             config: Application configuration
             storage: Storage manager
+            dry_run: If True, skip email/webhook/docs and use DryRunAIClient
         """
         self.config = config
         self.storage = storage
+        self.dry_run = dry_run
         self.console = Console(legacy_windows=False)
         self.email_manager = EmailManager(config.email, console=self.console) if config.email else None
         self.webhook_notifier = (
@@ -59,6 +61,13 @@ class HorizonOrchestrator:
             if config.webhook and config.webhook.enabled
             else None
         )
+
+    def _make_ai_client(self):
+        """Return DryRunAIClient in dry-run mode, real client otherwise."""
+        if self.dry_run:
+            from .ai.dry_run import DryRunAIClient
+            return DryRunAIClient()
+        return create_ai_client(self.config.ai)
 
     async def run(self, force_hours: int = None) -> None:
         """Execute the complete workflow.
@@ -154,42 +163,43 @@ class HorizonOrchestrator:
                 self.console.print(f"💾 Saved {lang.upper()} summary to: {summary_path}\n")
 
                 # Copy to docs/ for GitHub Pages
-                try:
-                    from pathlib import Path
+                if not self.dry_run:
+                    try:
+                        from pathlib import Path
 
-                    post_filename = f"{today}-summary-{lang}.md"
-                    posts_dir = Path("docs/_posts")
-                    posts_dir.mkdir(parents=True, exist_ok=True)
+                        post_filename = f"{today}-summary-{lang}.md"
+                        posts_dir = Path("docs/_posts")
+                        posts_dir.mkdir(parents=True, exist_ok=True)
 
-                    dest_path = posts_dir / post_filename
+                        dest_path = posts_dir / post_filename
 
-                    # Add Jekyll front matter
-                    front_matter = (
-                        "---\n"
-                        "layout: default\n"
-                        f"title: \"Horizon Summary: {today} ({lang.upper()})\"\n"
-                        f"date: {today}\n"
-                        f"lang: {lang}\n"
-                        "---\n\n"
-                    )
+                        # Add Jekyll front matter
+                        front_matter = (
+                            "---\n"
+                            "layout: default\n"
+                            f"title: \"Horizon Summary: {today} ({lang.upper()})\"\n"
+                            f"date: {today}\n"
+                            f"lang: {lang}\n"
+                            "---\n\n"
+                        )
 
-                    # Strip leading H1 header to avoid duplication with Jekyll title
-                    summary_content = summary
-                    first_line = summary_content.strip().split("\n")[0]
-                    if first_line.startswith("# "):
-                        parts = summary_content.split("\n", 1)
-                        if len(parts) > 1:
-                            summary_content = parts[1].strip()
+                        # Strip leading H1 header to avoid duplication with Jekyll title
+                        summary_content = summary
+                        first_line = summary_content.strip().split("\n")[0]
+                        if first_line.startswith("# "):
+                            parts = summary_content.split("\n", 1)
+                            if len(parts) > 1:
+                                summary_content = parts[1].strip()
 
-                    with open(dest_path, "w", encoding="utf-8") as f:
-                        f.write(front_matter + summary_content)
+                        with open(dest_path, "w", encoding="utf-8") as f:
+                            f.write(front_matter + summary_content)
 
-                    self.console.print(f"📄 Copied {lang.upper()} summary to GitHub Pages: {dest_path}\n")
-                except Exception as e:
-                    self.console.print(f"[yellow]⚠️  Failed to copy {lang.upper()} summary to docs/: {e}[/yellow]\n")
+                        self.console.print(f"📄 Copied {lang.upper()} summary to GitHub Pages: {dest_path}\n")
+                    except Exception as e:
+                        self.console.print(f"[yellow]⚠️  Failed to copy {lang.upper()} summary to docs/: {e}[/yellow]\n")
 
                 # Send email if configured
-                if self.email_manager and self.config.email and self.config.email.enabled:
+                if not self.dry_run and self.email_manager and self.config.email and self.config.email.enabled:
                     self.console.print(f"📧 Sending {lang.upper()} email summary...")
                     subscribers = self.storage.load_subscribers()
                     subject = f"Horizon Summary ({lang.upper()}) - {today}"
@@ -199,7 +209,7 @@ class HorizonOrchestrator:
                     self.email_manager.send_daily_summary(email_summary, subject, subscribers)
 
                 # Send webhook notification if configured
-                if self.webhook_notifier:
+                if not self.dry_run and self.webhook_notifier:
                     await self.webhook_notifier.send_daily_summary(
                         summary=summary,
                         important_items=important_items,
@@ -442,7 +452,7 @@ class HorizonOrchestrator:
         items_text = "\n\n".join(lines)
 
         try:
-            ai_client = create_ai_client(self.config.ai)
+            ai_client = self._make_ai_client()
             response = await ai_client.complete(
                 system=TOPIC_DEDUP_SYSTEM,
                 user=TOPIC_DEDUP_USER.format(items=items_text),
@@ -649,7 +659,7 @@ class HorizonOrchestrator:
         self.console.print(
             f"   Re-analyzing {len(expanded)} Twitter items with reply context...\n"
         )
-        ai_client = create_ai_client(self.config.ai)
+        ai_client = self._make_ai_client()
         analyzer = ContentAnalyzer(ai_client)
         await analyzer.analyze_batch(expanded)
 
@@ -666,7 +676,7 @@ class HorizonOrchestrator:
             return
 
         self.console.print("📚 Enriching with background knowledge...")
-        ai_client = create_ai_client(self.config.ai)
+        ai_client = self._make_ai_client()
         enricher = ContentEnricher(ai_client)
         await enricher.enrich_batch(items)
         self.console.print(f"   Enriched {len(items)} items\n")
@@ -682,7 +692,7 @@ class HorizonOrchestrator:
         """
         self.console.print("🤖 Analyzing content with AI...")
 
-        ai_client = create_ai_client(self.config.ai)
+        ai_client = self._make_ai_client()
         analyzer = ContentAnalyzer(ai_client)
 
         return await analyzer.analyze_batch(items)
