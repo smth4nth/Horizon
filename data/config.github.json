@@ -124,7 +124,23 @@
       "enabled": false
     },
     "twitter": {
-      "enabled": false
+      "enabled": true,
+      "mode": "apify",
+      "users": [
+        "karpathy",
+        "ylecun",
+        "akshay_pachaar",
+        "sama",
+        "rasbt",
+        "_akhaliq",
+        "alexalbert__",
+        "swyx",
+        "jxnlco",
+        "simonw",
+        "indydevdan"
+      ],
+      "fetch_limit": 10,
+      "apify_token_env": "APIFY_TOKEN"
     },
     "openbb": {
       "enabled": false
