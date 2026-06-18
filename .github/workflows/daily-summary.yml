@@ -1,9 +1,8 @@
 name: Daily Horizon Summary
 
 on:
-  # schedule:
-  #   - cron: '0 0 */2 * *'  # Runs every 2 days at 00:00 UTC
-  #     timezone: 'Asia/Shanghai'
+  schedule:
+    - cron: '0 1 * * *'
   workflow_dispatch:      # Allow manual trigger
 
 jobs:
@@ -37,6 +36,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           LWN_KEY: ${{ secrets.LWN_KEY }}
         run: uv run horizon --hours 48
 
