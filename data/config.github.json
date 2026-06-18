@@ -33,91 +33,91 @@
         "name": "AIHot",
         "url": "https://aihot.virxact.com/feed.xml",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "DeepMind Podcast",
         "url": "https://feeds.simplecast.com/JT6pbPkg",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Lenny's Podcast",
         "url": "https://api.substack.com/feed/podcast/10845.rss",
         "enabled": true,
-        "category": "product"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @karpathy",
         "url": "https://rsshub.app/twitter/user/karpathy",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @ylecun",
         "url": "https://rsshub.app/twitter/user/ylecun",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @akshay_pachaar",
         "url": "https://rsshub.app/twitter/user/akshay_pachaar",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @sama",
         "url": "https://rsshub.app/twitter/user/sama",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @elvis",
         "url": "https://rsshub.app/twitter/user/elvis",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @rasbt",
         "url": "https://rsshub.app/twitter/user/rasbt",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @_akhaliq",
         "url": "https://rsshub.app/twitter/user/_akhaliq",
         "enabled": true,
-        "category": "ai-ml"
+        "category": "ai-news"
       },
       {
         "name": "Twitter @alexalbert__",
         "url": "https://rsshub.app/twitter/user/alexalbert__",
         "enabled": true,
-        "category": "dev-tools"
+        "category": "claude-codex-tips"
       },
       {
         "name": "Twitter @swyx",
         "url": "https://rsshub.app/twitter/user/swyx",
         "enabled": true,
-        "category": "dev-tools"
+        "category": "claude-codex-tips"
       },
       {
         "name": "Twitter @jxnlco",
         "url": "https://rsshub.app/twitter/user/jxnlco",
         "enabled": true,
-        "category": "dev-tools"
+        "category": "claude-codex-tips"
       },
       {
         "name": "Twitter @simonw",
         "url": "https://rsshub.app/twitter/user/simonw",
         "enabled": true,
-        "category": "dev-tools"
+        "category": "claude-codex-tips"
       },
       {
         "name": "Twitter @indydevdan",
         "url": "https://rsshub.app/twitter/user/indydevdan",
         "enabled": true,
-        "category": "dev-tools"
+        "category": "claude-codex-tips"
       }
     ],
     "reddit": {
