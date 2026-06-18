@@ -37,11 +37,15 @@ def main():
 
     parser = argparse.ArgumentParser(description="Horizon - AI-Driven Information Aggregation System")
     parser.add_argument("--hours", type=int, help="Force fetch from last N hours")
+    parser.add_argument("--dry-run", action="store_true", help="Skip LLM calls and produce output locally")
     args = parser.parse_args()
 
     try:
         # Load environment variables from .env file
         load_dotenv()
+
+        if args.dry_run:
+            console.print("[bold yellow]⚠️  DRY RUN — LLM calls skipped, output saved locally[/bold yellow]\n")
 
         # Ensure we're in the project directory or use data/ in current dir
         data_dir = Path("data")
@@ -73,7 +77,7 @@ def main():
             sys.exit(1)
 
         # Create and run orchestrator
-        orchestrator = HorizonOrchestrator(config, storage)
+        orchestrator = HorizonOrchestrator(config, storage, dry_run=args.dry_run)
         asyncio.run(orchestrator.run(force_hours=args.hours))
 
     except KeyboardInterrupt:
