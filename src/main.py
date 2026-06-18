@@ -5,6 +5,13 @@ import asyncio
 import sys
 from pathlib import Path
 
+# Windows terminals default to GBK; reconfigure stdout/stderr to UTF-8 so
+# emoji in Rich output don't crash on non-UTF-8 locales.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from dotenv import load_dotenv
 from rich.console import Console
 
@@ -45,7 +52,7 @@ def main():
         load_dotenv()
 
         if args.dry_run:
-            console.print("[bold yellow]⚠️  DRY RUN — LLM calls skipped, output saved locally[/bold yellow]\n")
+            console.print("[bold yellow][DRY RUN] LLM calls skipped, output saved locally[/bold yellow]\n")
 
         # Ensure we're in the project directory or use data/ in current dir
         data_dir = Path("data")
