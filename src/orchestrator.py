@@ -23,6 +23,7 @@ from .scrapers.twitter_playwright import TwitterPlaywrightScraper
 from .scrapers.openbb import OpenBBScraper
 from .scrapers.ossinsight import OSSInsightScraper
 from .ai.client import create_ai_client
+from .ai.dry_run import DryRunAIClient
 from .ai.analyzer import ContentAnalyzer
 from .ai.summarizer import DailySummarizer
 from .ai.enricher import ContentEnricher
@@ -65,7 +66,6 @@ class HorizonOrchestrator:
     def _make_ai_client(self):
         """Return DryRunAIClient in dry-run mode, real client otherwise."""
         if self.dry_run:
-            from .ai.dry_run import DryRunAIClient
             return DryRunAIClient()
         return create_ai_client(self.config.ai)
 
